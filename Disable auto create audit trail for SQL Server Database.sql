@@ -35,34 +35,15 @@ Step:
 	- Remove the database trigger "tr_database_audit"
 */
 
+PRINT 'Starting: Removing trigger tr_database_audit'
+IF EXISTS(
+  SELECT *
+    FROM sys.triggers
+   WHERE name = N'tr_database_audit'
+     AND parent_class_desc = N'DATABASE'
+)
+	DROP TRIGGER tr_database_audit ON DATABASE
+PRINT 'Finished: Removing trigger tr_database_audit'
 
-PRINT 'Starting: Removing all triggers starting with tr_audit_'
-DECLARE @TriggerName VARCHAR(255);
-DECLARE MY_CURSOR_FOR_TRIGGER CURSOR
-	LOCAL STATIC READ_ONLY FORWARD_ONLY
-FOR
-	-- Get list of trigger in current database
-	SELECT
-		 sysobjects.name AS trigger_name
-	FROM sysobjects
-	WHERE
-		sysobjects.type = 'TR' AND
-		sysobjects.name LIKE 'tr_audit_%'
-OPEN MY_CURSOR_FOR_TRIGGER
-FETCH NEXT FROM MY_CURSOR_FOR_TRIGGER INTO @TriggerName
-WHILE @@FETCH_STATUS = 0
-BEGIN
-    DECLARE @sql VARCHAR(250)
-    
-    -- Remove current trigger
-    SET @sql = 'DROP TRIGGER ' + @TriggerName
-    PRINT 'Removing trigger: ' + @TriggerName
-    EXEC (@sql)
-    
-    FETCH NEXT FROM MY_CURSOR_FOR_TRIGGER INTO @TriggerName
-END
-CLOSE MY_CURSOR_FOR_TRIGGER
-DEALLOCATE MY_CURSOR_FOR_TRIGGER
-PRINT 'Finished: Removing all triggers starting with tr_audit_'
 PRINT ''
 PRINT 'Finished!'
